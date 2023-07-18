@@ -1,0 +1,9 @@
+<mujoco>
+    <asset>
+        <mesh name="hip_l" refquat="1 0 0 0" scale="0.001 0.001 0.001" file="meshes_new_leg/hip.stl"/>
+        <mesh name="servo_link_l" refquat="1 0 0 0" scale="0.001 0.001 0.001" file="meshes_new_leg/servo_horn.stl"/>
+        <mesh name="thigh_up_l" refquat="1 0 0 0"  scale="0.001 0.001 0.001" file="meshes_new_leg/thigh_up.stl"/>
+        <mesh name="thigh_down_l" refquat="1 0 0 0" scale="0.001 0.001 0.001" file="meshes_new_leg/thigh_down.stl"/>
+        <mesh name="foot_l" refquat="1 0 0 0" scale="0.001 0.001 0.001" file="meshes_new_leg/foot.stl"/>
+    </asset>
+</mujoco>

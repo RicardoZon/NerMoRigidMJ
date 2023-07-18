@@ -1,0 +1,11 @@
+<mujoco>
+    <sensor>
+        <jointpos name="thigh_joint_fr" joint="thigh_joint_fr"/>
+        <jointpos name="leg_joint_fr" joint="leg_joint_fr"/>
+    </sensor>
+
+    <actuator>
+        <position name="leg_joint_fr" joint="leg_joint_fr" gear="1" ctrllimited="true" ctrlrange="-3.00 3.00"  forcelimited="true" forcerange="-8 8" kp="500"/>
+        <position name="thigh_joint_fr" joint="thigh_joint_fr" gear="1" ctrllimited="true" ctrlrange="-3.00 3.00"  forcelimited="true" forcerange="-8 8" kp="500"/>
+    </actuator>
+</mujoco>
