@@ -1,25 +1,22 @@
 <mujoco>
-
     <include file="basic_scene.xml" />
     <include file="left_leg_stl_assets.xml"/>
 
     <worldbody>
-        <light diffuse=".5 .5 .5" pos="0 0 3" dir="0 0 -1"/>
-        <geom type="plane" size="0 0 0.03" material="matplane"/>
-        <camera name="body_cam" mode="fixed" pos="0.3 -0.01 0.1" euler="90 90 0"/>
-        <!-- <body pos="0 0 0.1">
-            <include file="leg_fl_assets/fl_asset_exp.xml"/>
-        </body> -->
-        <body name="fl" pos="0 0 0.1">
+        <light diffuse=".5 .5 .5" pos="0 -1.0 3" dir="0 0 -1"/>
+        <geom type="plane" size="0 0 0.03" material="matplane" rgba="1 1 1 1"/>
+        <body name="fl" pos="0.0 0 0.1">
                 <include file="leg_fl_assets/fl_asset_exp.xml"/>
         </body>
     </worldbody>
 
+    <equality>
+        <connect anchor="0 0 0" body1="thigh_up_link_1_fl" body2="thigh_up_link_2_fl"  solimp="1 1 0.001"/>
+    </equality>
     <contact>
         <exclude body1="main_leg_fl" body2="servo_horn_fl"/>
     </contact>
-
     <include file="leg_fl_assets/fl_tendon.xml"/>
-
     <include file="leg_fl_assets/fl_sensor_actuator.xml"/>
+
 </mujoco>
