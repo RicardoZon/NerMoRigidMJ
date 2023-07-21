@@ -56,23 +56,17 @@ class SimModel(object):
 		# Note: range is [-1, 1]
 		# ------------------------------------------ #
 		step_num = int(dt/self._timestep)
-		step_start = time.time()
+		# step_start = time.time()
 		self.data.ctrl[:] = ctrlData
 		for i in range(step_num):
-			step_start = time.time()
+			# step_start = time.time()
 			mujoco.mj_step(self.model, self.data)
-			# if self.render:
-			# 	self.viewer.sync()
+			if self.render:
+				self.viewer.sync()
 			# 	time_until_next_step = self._timestep - (time.time() - step_start)
 			# 	print(time_until_next_step)
 			# 	if time_until_next_step > 0:
 			# 		time.sleep(time_until_next_step)
-		if self.render:
-			self.viewer.sync()
-			time_until_next_step = dt - (time.time() - step_start)
-			# print(time_until_next_step)
-			if time_until_next_step > 0:
-				time.sleep(time_until_next_step)
 		'''
 		tData = self.sim.data.get_site_xpos(self.fixPoint)
 		for i in range(3):
@@ -178,7 +172,7 @@ class SimModel(object):
 if __name__ == '__main__':
 	import os
 	RUN_TIME_LENGTH = 20  # seconds
-	fre = 0.5
+	fre = 0.67
 	from Controller import MouseController
 	theMouse = SimModel("../models/dynamic_4l.xml", render=True)
 	dt = 0.002
@@ -189,12 +183,11 @@ if __name__ == '__main__':
 	mujoco.mj_resetData(theMouse.model, theMouse.data)
 	for i in range(10):  # 0.2 s
 		# ctrlData = 0
-		# ctrlData = [0.0, 1, 0.0, 1, 0.0, 1, 0.0, 1, 0, 0, 0, 0]
-		ctrlData = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0]  # Init
+		ctrlData = [0.0, 1, 0.0, 1, 0.0, 1, 0.0, 1, 0, 0, 0, 0]
+		# ctrlData = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0]  # Init
 		theMouse.runStep(ctrlData, theMouse.model.opt.timestep)
 	theMouse.initializing()
 	start = time.time()
-	# input()
 	for i in range(run_steps_num):
 		tCtrlData = theController.runStep()  # No Spine
 		# tCtrlData = theController.runStep_spine()		# With Spine
