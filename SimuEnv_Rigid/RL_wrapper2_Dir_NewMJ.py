@@ -21,7 +21,7 @@ class RatRL(gym.Env):
     Simplified from Wrapper V2
     """
 
-    def __init__(self, xml_file, render=False):
+    def __init__(self, xml_file: str, render=False):
         super(RatRL, self).__init__()
         # Wrapper
         high = np.array([np.inf] * 28).astype(np.float32)
@@ -30,7 +30,7 @@ class RatRL(gym.Env):
             np.array([+1., +1., +1., +1., +1., +1., +1., +1.]).astype(np.float32),
         )
         self.observation_space = spaces.Box(-high, high)
-        self.model = mujoco.MjModel.from_xml_path(xml_file)
+        self.model = mujoco.MjModel.from_xml_path(filename=xml_file)
         self.data = mujoco.MjData(self.model)
         self.xml_file = xml_file
         if render:
