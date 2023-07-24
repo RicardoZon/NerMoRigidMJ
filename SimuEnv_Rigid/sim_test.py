@@ -8,7 +8,7 @@ RUN_TIME_LENGTH = 20
 if __name__ == '__main__':
 	fre = 0.67  # 0.5
 	time_step = 0.002
-	spine_angle = 0#20
+	spine_angle = 0 #20
 	run_steps_num = int(RUN_TIME_LENGTH / time_step)
 
 	theMouse = SimModel("../models/dynamic_4l.xml")
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 		axs[pos_1,pos_2].set_title(subTitle[i])
 		axs[pos_1,pos_2].plot(theController.trgXList[i], theController.trgYList[i])
 		axs[pos_1,pos_2].plot(theMouse.legRealPoint_x[i], theMouse.legRealPoint_y[i])
-	
+
 	plt.show()
 	#'''
 

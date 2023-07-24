@@ -1,9 +1,9 @@
 import numpy as np
 import math
 
-from LegModel.forPath import LegPath
+from SimuEnv_Rigid.LegModel.forPath import LegPath
 # -----------------------------------------------------------
-from LegModel.legs import LegModel
+from SimuEnv_Rigid.LegModel.legs import LegModel
 
 
 class MouseController(object):
