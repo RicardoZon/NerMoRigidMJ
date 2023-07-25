@@ -12,3 +12,6 @@ __pycache__/
 
 # C extensions
 *.so
+
+# Debug
+/SimuEnv_Rigid/RL_wrapper3_ConnectBK.py

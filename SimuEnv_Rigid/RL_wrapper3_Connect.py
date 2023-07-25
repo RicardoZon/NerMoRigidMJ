@@ -23,12 +23,12 @@ class RatRL(gym.Env):
     def __init__(self, xml_file: str, render=False):
         super(RatRL, self).__init__()
         # Wrapper
-        high = np.array([np.inf] * 28).astype(np.float32)
+        high = np.array([np.inf] * 28).astype(np.float32)  # 28: Rich sensor
         self.action_space = spaces.Box(
             np.array([-1., -1., -1., -1.]).astype(np.float32),
             np.array([+1., +1., +1., +1.]).astype(np.float32),
         )
-        self.observation_space = spaces.Box(-high, high)  # TODO state check
+        self.observation_space = spaces.Box(-high, high)
         self.model = mujoco.MjModel.from_xml_path(filename=xml_file)
         self.data = mujoco.MjData(self.model)
         self.xml_file = xml_file
@@ -44,7 +44,7 @@ class RatRL(gym.Env):
         self._timestep = self.model.opt.timestep  # Default = 0.002s per timestep
         self.dt = self._timestep * self.frame_skip  # dt = 0.01s
         self.Controller = MouseController(0.67, self.dt, 0)  # X Spine
-        self.N_cluster = self.Controller.SteNum # a circle as whole
+        self.N_cluster = 5  # self.Controller.SteNum # a circle as whole
         self._max_episode_steps = 10000 * 0.002 / self.dt  # 10000 when timestep = 0.002s
 
         self.pos = None
@@ -94,12 +94,38 @@ class RatRL(gym.Env):
         """
         return
 
-    def OneStepProcess(self):
-        # # Cut
+    def step(self, action):
+        self.Y_Pre = self.pos[1]
+        self.action_pre = self.action
+
+        # action x4 [-1, +1]
+        self.action = np.array(action)
+        ActionSignal = (self.action + 1.0 )*0.5  # 0.0 to 1.0
+        ctrlData = self.Controller.runStep(ActionSignal)
+        self.do_simulation(ctrlData, n_frames=self.frame_skip)
+        self._step = self._step + 1
+
+        # Sensor
+        self.pos = self.data.sensor("com_pos").data.copy()
+        self.quat = self.data.sensor("com_quat").data.copy()
+        self.vel = self.data.sensor("com_vel").data.copy()
+        self.acc = self.data.sensor("imu_acc").data.copy()
+        self.gyro = self.data.sensor("imu_gyro").data.copy()
         # contact_sensor = [self.data.sensor("fl_t1").data[0].copy(), self.data.sensor("fr_t1").data[0].copy(),
         #                   self.data.sensor("rl_t1").data[0].copy(), self.data.sensor("rr_t1").data[0].copy()]
         # contact_sensor = (np.array(contact_sensor) != 0.0).astype(int)  # 1 for contact, 0 for air
         # sum_contact = sum(contact_sensor)
+        # qpos
+        # qposes = [
+        #     self.sim.data.get_joint_qpos("knee1_fl"),
+        #     self.sim.data.get_joint_qpos("ankle_fl"),4
+        #     self.sim.data.get_joint_qpos("knee1_fr"),
+        #     self.sim.data.get_joint_qpos("ankle_fr"),
+        #     self.sim.data.get_joint_qpos("knee1_rl"),
+        #     self.sim.data.get_joint_qpos("ankle_rl"),
+        #     self.sim.data.get_joint_qpos("knee1_rr"),
+        #     self.sim.data.get_joint_qpos("ankle_rr"),
+        # ]
 
         # Rewards
         reward_forward = (self.pos[1] - self.Y_Pre) / self.dt * (-5)  # 2~4
@@ -117,27 +143,15 @@ class RatRL(gym.Env):
         #     # Trapped
         #     reward_trapped = -5.0  # 1.5?   15.0 Too Large For 51   5.0 For 52
         #     self.done = True
-        if self.pos[2] < 0.03:
-            reward_trapped = -5.0  # 1.5?   15.0 Too Large For 51   5.0 For 52
-            self.done = True
+        # if self.pos[2] < 0.03:  # TODO
+        #     reward_trapped = -5.0  # 1.5?   15.0 Too Large For 51   5.0 For 52
+        #     self.done = True
         reward_bias = 0.  # -(self.pos[0] * 2) **2  # For 47  *4 For 46
         # # reward_holdon = 0. # 1. * self._step / self._max_episode_steps  #  X
         # reward_height = 0. # 25 * (#self.pos[2]-0.065)  # make jump and trap
 
         sum_delta_a = sum(abs(self.action - self.action_pre))
         control_cost = 0.05 * sum_delta_a
-
-        # qpos
-        # qposes = [
-        #     self.sim.data.get_joint_qpos("knee1_fl"),
-        #     self.sim.data.get_joint_qpos("ankle_fl"),4
-        #     self.sim.data.get_joint_qpos("knee1_fr"),
-        #     self.sim.data.get_joint_qpos("ankle_fr"),
-        #     self.sim.data.get_joint_qpos("knee1_rl"),
-        #     self.sim.data.get_joint_qpos("ankle_rl"),
-        #     self.sim.data.get_joint_qpos("knee1_rr"),
-        #     self.sim.data.get_joint_qpos("ankle_rr"),
-        # ]
 
         self.Reward_Now = float(reward_forward + reward_trapped + reward_bias - control_cost)  # FLOAT 32
 
@@ -150,7 +164,7 @@ class RatRL(gym.Env):
         # #      [reward_forward],
         # #      vel, gyro, self.quat, contact_sensor]
         # S = [y for x in S for y in x]
-        S = self.data.sensordata.copy()
+        S = self.data.sensordata.copy()  # rich state
         S = np.array(S).astype(np.float32)
         self.State_Now = S
         # print(S)
@@ -172,23 +186,3 @@ class RatRL(gym.Env):
         # print("!!!!!!!!!! Zero!!!!!!!!!! Zero!!!!!!!!!! Zero!!!!!!!!!! Zero!!!!!!!!!! Zero!!!!!!!!!! Zero")
 
         return S, self.Reward_Now, self.done, info
-
-    def step(self, action):
-        self.Y_Pre = self.pos[1]
-        self.action_pre = self.action
-
-        # action x4 [-1, +1]
-        self.action = np.array(action)
-        ActionSignal = (self.action + 1.0 )*0.5  # 0.0 to 1.0
-        ctrlData = self.Controller.runStep(ActionSignal)
-        self.do_simulation(ctrlData, n_frames=self.frame_skip)
-
-        self.pos = self.data.sensor("com_pos").data.copy()
-        self.quat = self.data.sensor("com_quat").data.copy()
-        self.vel = self.data.sensor("com_vel").data.copy()
-        self.acc = self.data.sensor("imu_acc").data.copy()
-        self.gyro = self.data.sensor("imu_gyro").data.copy()
-
-        self._step = self._step + 1
-        s, r, done, info = self.OneStepProcess()
-        return s, r, done, info
