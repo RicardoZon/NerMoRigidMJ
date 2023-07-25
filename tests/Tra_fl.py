@@ -159,7 +159,7 @@ if __name__ == '__main__':
     fre = 0.67
 
     FL = SimModel_fl("../models/fl_single.xml", render=True)
-    dt = 0.002
+    dt = 0.01
     n_frames = int(dt / FL._timestep)
     run_steps_num = int(RUN_TIME_LENGTH / dt)
     theController = MouseController(fre, dt, 0)

@@ -9,7 +9,7 @@ from SimuEnv_Rigid.LegModel.legs import LegModel
 class MouseController(object):
     """docstring for MouseController"""
 
-    def __init__(self, fre, time_step, spine_angle):
+    def __init__(self, SteNum, spine_angle, ):
         super(MouseController, self).__init__()
         PI = np.pi
         self.curStep = 0  # Spine
@@ -19,7 +19,7 @@ class MouseController(object):
         # self.turn_H = 8*PI/180
         # Spine A = 20
         self.turn_F = 0 * PI / 180
-        self.turn_H = 12 * PI / 180
+        self.turn_H = 12 * PI / 180  # 12
         self.pathStore = LegPath()
         # [LF, RF, LH, RH]
         # --------------------------------------------------------------------- #
@@ -30,8 +30,8 @@ class MouseController(object):
         # --------------------------------------------------------------------- #
         self.phaseDiff = [0, PI, PI, 0]  # Trot
         self.period = 2 / 2
-        self.fre_cyc = fre  # 1.25#0.80
-        self.SteNum = int(1 / (time_step * self.fre_cyc))
+        self.SteNum = SteNum
+        # self.fre_cyc = 1 / (self.SteNum * dt )  # 1.25  # 0.80 ??
         print("----> ", self.SteNum)
         self.spinePhase = self.phaseDiff[3]
         # --------------------------------------------------------------------- #

@@ -1,5 +1,5 @@
 # from RatEnv.RL_wrapper2_MujoEnv_Compare import RatRL
-from SimuEnv_Rigid.RL_wrapper2_Dir_NewMJ import RatRL
+from SimuEnv_Rigid.RL_wrapper3_Connect import RatRL
 import gym
 from stable_baselines3 import PPO
 from stable_baselines3 import SAC
@@ -9,11 +9,11 @@ import warnings
 RENDER_TRAIN = False
 
 if __name__ == '__main__':
-    SceneFile = "../models/dynamic_4l.xml"
-    NAME = "S0_PPO_001"
+    # SceneFile = "../models/dynamic_4l.xml"
+    # NAME = "S0_PPO_001"
 
-    # SceneFile = "../models/Scenario1_Planks.xml"
-    # NAME = "S1_PPO_083"
+    SceneFile = "../models/Scenario1_Planks.xml"
+    NAME = "S1_PPO_002"
 
     # SceneFile = "../models/Scenario2_Uphill.xml"
     # NAME = "S2_PPO_114"

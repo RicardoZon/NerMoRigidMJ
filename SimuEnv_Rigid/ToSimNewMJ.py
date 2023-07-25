@@ -173,7 +173,7 @@ if __name__ == '__main__':
 	fre = 0.67
 	from Controller import MouseController
 	theMouse = SimModel("../models/dynamic_4l.xml", render=True)
-	dt = 0.002
+	dt = 0.01
 	n_frames = int(dt / theMouse._timestep)
 	run_steps_num = int(RUN_TIME_LENGTH / dt)
 	theController = MouseController(fre, dt, 0)

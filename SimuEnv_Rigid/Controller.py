@@ -49,8 +49,8 @@ class MouseController(object):
         for i in range(4):
             self.stepDiff[i] = int(self.SteNum * self.phaseDiff[i] / (2 * PI))
         self.stepDiff.append(int(self.SteNum * self.spinePhase / (2 * PI)))
-        # self.trgXList = [[], [], [], []]
-        # self.trgYList = [[], [], [], []]
+        self.trgXList = [[], [], [], []]
+        self.trgYList = [[], [], [], []]
 
     def getLegCtrl(self, leg_M, curStep, leg_ID):
         curStep = curStep % self.SteNum
@@ -64,8 +64,8 @@ class MouseController(object):
         currentPos = self.pathStore.getOvalPathPoint(radian, leg_flag, self.period)
         trg_x = currentPos[0]
         trg_y = currentPos[1]
-        # self.trgXList[leg_ID].append(trg_x)
-        # self.trgYList[leg_ID].append(trg_y)
+        self.trgXList[leg_ID].append(trg_x)
+        self.trgYList[leg_ID].append(trg_y)
 
         tX = math.cos(turnAngle) * trg_x - math.sin(turnAngle) * trg_y;
         tY = math.cos(turnAngle) * trg_y + math.sin(turnAngle) * trg_x;

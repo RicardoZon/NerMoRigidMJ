@@ -4,7 +4,6 @@ import mujoco
 import mujoco.viewer as viewer
 from SimuEnv_Rigid.RL_Controller import MouseController
 
-
 import numpy as np
 import matplotlib.pyplot as plt
 import time
@@ -40,12 +39,22 @@ class RatRL(gym.Env):
             self.viewer.cam.lookat[0] += 0.25
             self.viewer.cam.lookat[1] += -0.5
             self.viewer.cam.distance = self.model.stat.extent * 0.5
+
+        # Hyper Parameter
         self.frame_skip = 5
+        self.Ndiv = 8  # divided by Ndiv pieces
+
         self._timestep = self.model.opt.timestep  # Default = 0.002s per timestep
         self.dt = self._timestep * self.frame_skip  # dt = 0.01s
-        self.Controller = MouseController(0.67, self.dt, 0)  # X Spine
-        self.N_cluster = 5  # self.Controller.SteNum # a circle as whole
-        self._max_episode_steps = 10000 * 0.002 / self.dt  # 10000 when timestep = 0.002s
+
+        self.fre_cyc = 0.67  # 1.25 #0.80
+        self.SteNum = int(1 / (self.dt * self.fre_cyc))
+        self.N_cluster = (int(self.SteNum / 8)+1)  # [19]*8
+        self.SteNum = self.N_cluster * self.Ndiv  # Update SteNum
+        self.Controller = MouseController(self.SteNum, 0)  # X Spine
+        self.ActionIndex = 0
+
+        self._max_episode_steps = int(10000 * 0.002 / (self.dt * self.N_cluster))  # 10000 when timestep = 0.002s
 
         self.pos = None
         self.quat = None
@@ -69,6 +78,7 @@ class RatRL(gym.Env):
         # del self.model
         # self.model = load_model_from_path(self.xml_file)
         # self.sim = MjSim(self.model)
+        self.ActionIndex = 0
         mujoco.mj_resetData(self.model, self.data)
         self._step = 0
         ctrlData = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0]
@@ -77,8 +87,8 @@ class RatRL(gym.Env):
         self.action = np.array([1.0, 1.0, 1.0, 1.0])
         self.done = False
 
-        self.Controller.curStep = 0
         s, _, _, _ = self.step(self.action)
+        self.Controller.curStep = 0
         return s
 
     def render(self, mode='human'):
@@ -97,13 +107,15 @@ class RatRL(gym.Env):
     def step(self, action):
         self.Y_Pre = self.pos[1]
         self.action_pre = self.action
-
         # action x4 [-1, +1]
         self.action = np.array(action)
-        ActionSignal = (self.action + 1.0 )*0.5  # 0.0 to 1.0
-        ctrlData = self.Controller.runStep(ActionSignal)
-        self.do_simulation(ctrlData, n_frames=self.frame_skip)
+        ActionSignal = (self.action + 1.0) * 0.5  # 0.0 to 1.0
+        # print(self.ActionIndex)
+        for _ in range(self.N_cluster):
+            ctrlData = self.Controller.runStep(ActionSignal)
+            self.do_simulation(ctrlData, n_frames=self.frame_skip)
         self._step = self._step + 1
+        self.ActionIndex = (self.ActionIndex + 1) % self.Ndiv  # Go to next Action Piece
 
         # Sensor
         self.pos = self.data.sensor("com_pos").data.copy()
@@ -128,11 +140,11 @@ class RatRL(gym.Env):
         # ]
 
         # Rewards
-        reward_forward = (self.pos[1] - self.Y_Pre) / self.dt * (-5)  # 2~4
+        reward_forward = (self.pos[1] - self.Y_Pre) / (self.dt * self.N_cluster) * (-10)  # 2~4
 
         reward_trapped = 0.0
-        if reward_forward > 3.5:
-            reward_trapped = -5.0  # 71 72
+        # if reward_forward > 3.5:
+        #     reward_trapped = -5.0  # 71 72
 
         # if sum_contact == 0:
         #     self.nair += 1
@@ -151,7 +163,7 @@ class RatRL(gym.Env):
         # reward_height = 0. # 25 * (#self.pos[2]-0.065)  # make jump and trap
 
         sum_delta_a = sum(abs(self.action - self.action_pre))
-        control_cost = 0.05 * sum_delta_a
+        control_cost = 0  # 0.05 * sum_delta_a
 
         self.Reward_Now = float(reward_forward + reward_trapped + reward_bias - control_cost)  # FLOAT 32
 

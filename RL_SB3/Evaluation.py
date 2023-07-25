@@ -1,6 +1,6 @@
 # from RatEnv.RL_wrapper3_Connect import RatRL
-from RatEnv_Rigid.RL_wrapper2_Dir_NewMJ import RatRL
-# from RatEnv.RL_wrapper2_MujoEnv_Compare import RatRL
+# from RatEnv_Rigid.RL_wrapper2_Dir_NewMJ import RatRL
+from SimuEnv_Rigid.RL_wrapper3_Connect import RatRL
 # from RatEnv.RL_wrapper2 import RatRL
 import gym
 from stable_baselines3 import PPO
@@ -14,9 +14,11 @@ from Tools.DataRecorder import DATA_Recorder
 RENDER = True
 
 if __name__ == '__main__':
-    SceneFile = "../models/dynamic_4l.xml"
-    MODELPATH = "data/S0_PPO_Native_001"
+    # SceneFile = "../models/dynamic_4l.xml"
+    # MODELPATH = "Local_Data/S0_PPO_001"
 
+    SceneFile = "../models/Scenario1_Planks.xml"
+    MODELPATH = "Local_Data/S1_PPO_002"
 
     # SceneFile = "../models/scene_test1.xml"
     # MODELPATH = "data/S1_PPO_Native_056"
@@ -50,7 +52,7 @@ if __name__ == '__main__':
     obs = vec_env.reset()
     pos_Ori = vec_env.envs[0].pos[1]
     pos_end = []
-    for i in range(int(6000/5)):
+    for i in range(int(10000/5)):
         pos_pre = vec_env.envs[0].pos[1]
 
         action, _states = model.predict(obs, deterministic=True)
@@ -66,7 +68,7 @@ if __name__ == '__main__':
 
     times = np.array(vec_env.envs[0].episode_lengths)* vec_env.envs[0].dt
     v_global = -(np.array(pos_end) - pos_Ori) / np.array(times)
-    print(v_global.mean())
+    # print(v_global.mean())
 
     # Recorder.savePath_Basic("S1_Pass_073")
 

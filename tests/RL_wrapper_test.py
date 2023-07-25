@@ -23,3 +23,4 @@ if __name__ == '__main__':
     action = [1., 1., 1., 1.]
     for _ in range(10000):
         obs, rewards, dones, info = env.step(action)
+        print(info)
