@@ -8,4 +8,4 @@ d = mujoco.MjData(m)
 # viewer.launch(m, d)
 
 
-# viewer.launch()
+viewer.launch()

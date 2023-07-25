@@ -1,5 +1,5 @@
 # from RatEnv.RL_wrapper3_Connect import RatRL
-from Rat_Env_Rigid.RL_wrapper2_Dir_NewMJ import RatRL
+from RatEnv_Rigid.RL_wrapper2_Dir_NewMJ import RatRL
 # from RatEnv.RL_wrapper2_MujoEnv_Compare import RatRL
 # from RatEnv.RL_wrapper2 import RatRL
 import gym

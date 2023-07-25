@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-from SimuEnv_Rigid.LegModel.forPath import LegPath
+from SimuEnv_Rigid.LegModel.RLforPath import LegPath
 # -----------------------------------------------------------
 from SimuEnv_Rigid.LegModel.legs import LegModel
 
@@ -52,7 +52,7 @@ class MouseController(object):
         # self.trgXList = [[], [], [], []]
         # self.trgYList = [[], [], [], []]
 
-    def getLegCtrl(self, leg_M, curStep, leg_ID):
+    def getLegCtrl(self, leg_M, curStep, leg_ID, ratio=1.0):
         curStep = curStep % self.SteNum
         turnAngle = self.turn_F
         leg_flag = "F"
@@ -61,7 +61,7 @@ class MouseController(object):
             turnAngle = self.turn_H
         radian = 2 * np.pi * curStep / self.SteNum
         # currentPos = self.pathStore.getRectangle(radian, leg_flag)
-        currentPos = self.pathStore.getOvalPathPoint(radian, leg_flag, self.period)
+        currentPos = self.pathStore.getOvalPathPoint(radian, leg_flag, self.period, ratio=ratio)
         trg_x = currentPos[0]
         trg_y = currentPos[1]
         # self.trgXList[leg_ID].append(trg_x)
@@ -80,15 +80,15 @@ class MouseController(object):
     # spinePhase = 2*np.pi*spineStep/self.SteNum
     # return self.spine_A*math.sin(spinePhase)
 
-    def runStep(self):
+    def runStep(self, ActionSignal):
         foreLeg_left_q = self.getLegCtrl(self.fl_left,
-                                         self.curStep + self.stepDiff[0], 0)
+                                         self.curStep + self.stepDiff[0], 0, ratio=ActionSignal[0])
         foreLeg_right_q = self.getLegCtrl(self.fl_right,
-                                          self.curStep + self.stepDiff[1], 1)
+                                          self.curStep + self.stepDiff[1], 1, ratio=ActionSignal[1])
         hindLeg_left_q = self.getLegCtrl(self.hl_left,
-                                         self.curStep + self.stepDiff[2], 2)
+                                         self.curStep + self.stepDiff[2], 2, ratio=ActionSignal[2])
         hindLeg_right_q = self.getLegCtrl(self.hl_right,
-                                          self.curStep + self.stepDiff[3], 3)
+                                          self.curStep + self.stepDiff[3], 3, ratio=ActionSignal[3])
 
         spineStep = self.curStep  # + self.stepDiff[4]
         spine = self.getSpineVal(spineStep)
@@ -96,7 +96,6 @@ class MouseController(object):
         self.curStep = (self.curStep + 1) % self.SteNum
 
         ctrlData = []
-
         # foreLeg_left_q = [1,0]
         # foreLeg_right_q = [1,0]
         # hindLeg_left_q = [-1,0]

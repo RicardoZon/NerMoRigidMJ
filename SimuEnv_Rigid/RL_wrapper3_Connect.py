@@ -1,92 +1,91 @@
 import gym
 from gym import spaces
-import argparse
+import mujoco
+import mujoco.viewer as viewer
+from SimuEnv_Rigid.RL_Controller import MouseController
 
-from RatEnv.ToSim import SimModel
-from RatEnv.RL_Controller import MouseController
+
+import numpy as np
 import matplotlib.pyplot as plt
 import time
-import numpy as np
+import argparse
 from collections import deque
+from gym.envs.mujoco import mujoco_env  # REF
+
 
 class RatRL(gym.Env):
-    def __init__(self, SceneName, Render=False):
+    """
+    Sparse Version
+    Action: angle of 8 motor
+    Simplified from Wrapper V2
+    """
+
+    def __init__(self, xml_file: str, render=False):
         super(RatRL, self).__init__()
-        # self.action_space = spaces.
-        # self.observation_space=
-        self.SceneName = SceneName
-        # self.reset(Render=Render) should reset yourself
-
         # Wrapper
-        high = np.array([np.inf] * 12).astype(np.float32)
+        high = np.array([np.inf] * 28).astype(np.float32)
         self.action_space = spaces.Box(
-            np.array([-1, -1, -1, -1]).astype(np.float32),
-            np.array([1, 1, 1, 1]).astype(np.float32),
+            np.array([-1., -1., -1., -1.]).astype(np.float32),
+            np.array([+1., +1., +1., +1.]).astype(np.float32),
         )
-        self.observation_space = spaces.Box(-high, high)
-        # self._max_episode_steps = 50
-        # self._max_episode_steps = 50*2  # V3_1 T/4
-        self._max_episode_steps = 50 * 4  # V3_2 T/8  100*
+        self.observation_space = spaces.Box(-high, high)  # TODO state check
+        self.model = mujoco.MjModel.from_xml_path(filename=xml_file)
+        self.data = mujoco.MjData(self.model)
+        self.xml_file = xml_file
+        self.Render = render
+        if render:
+            # render must be called mannually
+            self.viewer = viewer.launch_passive(self.model, self.data)
+            self.viewer.cam.azimuth = 0
+            self.viewer.cam.lookat[0] += 0.25
+            self.viewer.cam.lookat[1] += -0.5
+            self.viewer.cam.distance = self.model.stat.extent * 0.5
+        self.frame_skip = 5
+        self._timestep = self.model.opt.timestep  # Default = 0.002s per timestep
+        self.dt = self._timestep * self.frame_skip  # dt = 0.01s
+        self.Controller = MouseController(0.67, self.dt, 0)  # X Spine
+        self.N_cluster = self.Controller.SteNum # a circle as whole
+        self._max_episode_steps = 10000 * 0.002 / self.dt  # 10000 when timestep = 0.002s
 
-        parser = argparse.ArgumentParser("Description.")
-        parser.add_argument('--fre', default=0.67,
-                            type=float, help="Gait stride")
-        args = parser.parse_args()
-        self.theMouse = SimModel(self.SceneName, Render=Render)
-        self.theController = MouseController(args.fre)
-        self.ActionIndex = 0
-        self.MaxActIndex = len(self.theController.Action_Div)  # V3_1 4
+        self.pos = None
+        self.quat = None
+        self.vel = None
+        self.acc = None
+        self.gyro = None
+        self._step = None
+        self.nair = 0
 
-        # Act_Per = int(self.SteNum / 2)
-        # self.Action_Div = [Act_Per, self.SteNum-Act_Per]  # 186, 187
-        # 3_1 piece 4
-        # Act_Per = int(self.SteNum / 4)
-        # self.Action_Div = [Act_Per, Act_Per, Act_Per, self.SteNum - Act_Per*3]  # 93, 93, 93, 94
-        # 3_2 piece 8
-        self.SteNum = 376  # 373+3
-        self.Action_Div = [47, 47, 47, 47, 47, 47, 47, 47]  # 93, 93, 93, 94
+    def do_simulation(self, ctrl, n_frames):
+        self.data.ctrl[:] = ctrl
+        for _ in range(n_frames):
+            mujoco.mj_step(self.model, self.data)
+        if self.Render:
+            self.viewer.sync()
 
     def reset(self):
         """将环境重置为初始状态，并返回一个初始状态；在环境中有随机性的时候，需要注意每次重置后要保证与之前的环境相互独立
         """
-        # self.theMouse.sim.set_state(self.theMouse.sim_state)  # Go to initializing
-        self.ActionIndex = 0
-        self.theMouse.initializing()
+        # del self.sim
+        # del self.model
+        # self.model = load_model_from_path(self.xml_file)
+        # self.sim = MjSim(self.model)
+        mujoco.mj_resetData(self.model, self.data)
         self._step = 0
-        for i in range(500):
-            ctrlData = [0.0, 1.5, 0.0, 1.5, 0.0, -1.2, 0.0, -1.2, 0, 0, 0, 0]
-            self.theMouse.runStep(ctrlData)  # 此处有个内置的render
-        #  sth in initializing should be done TODO
-        self.theController.reset()
-        self.States_Init()
-
-        # print("Reset")
-
-        # 是否需要hot up？ TODO
-        action_hot = [1., 1., 1., 1.]
+        ctrlData = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0]
+        self.do_simulation(ctrlData, n_frames=10)  # 此处有个内置的render
+        self.pos = self.data.sensor("com_pos").data.copy()
+        self.action = np.array([1.0, 1.0, 1.0, 1.0])
         self.done = False
-        s, _, _, _ = self.step(action_hot)
+
+        self.Controller.curStep = 0
+        s, _, _, _ = self.step(self.action)
         return s
 
-    def States_Init(self):
-        self.posY_Dir_pre = 0
-
-        self.N_StepPerT = self.theController.SteNum  # 373
-        # Connect Version
-        self.vel_list = []
-
-        self.vels = deque([])
-        self.gyros = deque([])
-
-        # For States
-        self.action = [1., 1., 1., 1.]
-        self.Action_Pre = [1., 1., 1., 1.]
-
     def render(self, mode='human'):
-        self.theMouse.viewer.render()
+        pass
 
     def close(self):
-        """一些环境数据的释放可以在该函数中实现
+        """
         """
         pass
 
@@ -95,127 +94,101 @@ class RatRL(gym.Env):
         """
         return
 
-    def TimestepProcess(self):
-        vel_dir = -list(self.theMouse.vel)[1]
-        self.vel_list.append(vel_dir)
+    def OneStepProcess(self):
+        # # Cut
+        # contact_sensor = [self.data.sensor("fl_t1").data[0].copy(), self.data.sensor("fr_t1").data[0].copy(),
+        #                   self.data.sensor("rl_t1").data[0].copy(), self.data.sensor("rr_t1").data[0].copy()]
+        # contact_sensor = (np.array(contact_sensor) != 0.0).astype(int)  # 1 for contact, 0 for air
+        # sum_contact = sum(contact_sensor)
 
-        vel = self.theMouse.vel
-        self.vels.append(vel)
-        gyro = self.theMouse.gyro
-        self.gyros.append(gyro)
+        # Rewards
+        reward_forward = (self.pos[1] - self.Y_Pre) / self.dt * (-5)  # 2~4
 
+        reward_trapped = 0.0
+        if reward_forward > 3.5:
+            reward_trapped = -5.0  # 71 72
 
-    def ActionProcess(self):
-        # pos = self.theMouse.pos
-        # posY_Dir = -pos[1]
-        # reward = posY_Dir - self.posY_Dir_pre
-        # self.posY_Dir_pre = posY_Dir
-        #
-        # self.Reward_Now = reward*10
+        # if sum_contact == 0:
+        #     self.nair += 1
+        #     # reward_trapped = -1.0  # weaken air time of front paws?
+        # else:
+        #     self.nair = 0
+        # if self.nair == 10:  # 10 For 65 20 For 66
+        #     # Trapped
+        #     reward_trapped = -5.0  # 1.5?   15.0 Too Large For 51   5.0 For 52
+        #     self.done = True
+        if self.pos[2] < 0.03:
+            reward_trapped = -5.0  # 1.5?   15.0 Too Large For 51   5.0 For 52
+            self.done = True
+        reward_bias = 0.  # -(self.pos[0] * 2) **2  # For 47  *4 For 46
+        # # reward_holdon = 0. # 1. * self._step / self._max_episode_steps  #  X
+        # reward_height = 0. # 25 * (#self.pos[2]-0.065)  # make jump and trap
 
-        vels_mean = np.array(self.vels).mean(axis=0)
-        gyros_mean = np.array(self.gyros).mean(axis=0)
+        sum_delta_a = sum(abs(self.action - self.action_pre))
+        control_cost = 0.05 * sum_delta_a
 
-        reward = -vels_mean[1] * 4
+        # qpos
+        # qposes = [
+        #     self.sim.data.get_joint_qpos("knee1_fl"),
+        #     self.sim.data.get_joint_qpos("ankle_fl"),4
+        #     self.sim.data.get_joint_qpos("knee1_fr"),
+        #     self.sim.data.get_joint_qpos("ankle_fr"),
+        #     self.sim.data.get_joint_qpos("knee1_rl"),
+        #     self.sim.data.get_joint_qpos("ankle_rl"),
+        #     self.sim.data.get_joint_qpos("knee1_rr"),
+        #     self.sim.data.get_joint_qpos("ankle_rr"),
+        # ]
 
-        # self.rat = self.FFTProcess(np.array(self.gyros).transpose()[1])
-        # if self.rat < 0.6:
-        #     reward = reward - 0.3
+        self.Reward_Now = float(reward_forward + reward_trapped + reward_bias - control_cost)  # FLOAT 32
 
-        self.Reward_Now = reward
-
-        S = [self.Action_Pre, [self.ActionIndex],
-             [reward],
-             vels_mean, gyros_mean]
-        # (4+1) + (1) + (3 +3) = 12
-        S = [y for x in S for y in x]
-        S = np.array(S)
+        # # SelfInfo of theta
+        # # self.ActionIndex = 0.
+        # S = [self.action,
+        #      [reward_forward],
+        #      self.vel, self.gyro, self.quat, contact_sensor]
+        # # S = [self.action,
+        # #      [reward_forward],
+        # #      vel, gyro, self.quat, contact_sensor]
+        # S = [y for x in S for y in x]
+        S = self.data.sensordata.copy()
+        S = np.array(S).astype(np.float32)
         self.State_Now = S
+        # print(S)
 
-        # Optional for test
-        self.Vels_mean = vels_mean
-        self.Gyros_mean = gyros_mean
-
-    def GetMarkovNode(self):
-        # 获得的是 Window_Cover 时刻之前的
-        # r = self.Rewards_Base[0] + self.Rewards_Attach[0]
-        # s = self.State_deque[0]
-
-        # Simple
-        r = self.Reward_Now
-        s = self.State_Now
-
+        # get markov node
         if self._step > self._max_episode_steps:
             self.done = True  # 超过了一定步数就重置一下环境
             # print("Out")
+        if self.pos[1] < -2.0:
+            self.done = True  # For validation
+        info = {
+            "reward_forward": reward_forward,
+            "reward_bias": reward_bias,
+            # "reward_holdon": reward_holdon,
+            "sum_delta_a": sum_delta_a,
+            # "touch": contact_sensor
+        }
+        # if not np.any(contact_sensor):
+        # print("!!!!!!!!!! Zero!!!!!!!!!! Zero!!!!!!!!!! Zero!!!!!!!!!! Zero!!!!!!!!!! Zero!!!!!!!!!! Zero")
 
-        info = None
-        return s, r, self.done, info
+        return S, self.Reward_Now, self.done, info
 
-    def step(self, action, Render=False, LegCal=False):
-        """环境的主要驱动函数，主逻辑将在该函数中实现。该函数可以按照时间轴，固定时间间隔调用
+    def step(self, action):
+        self.Y_Pre = self.pos[1]
+        self.action_pre = self.action
 
-        参数:
-            action (object): an action provided by the agent
+        # action x4 [-1, +1]
+        self.action = np.array(action)
+        ActionSignal = (self.action + 1.0 )*0.5  # 0.0 to 1.0
+        ctrlData = self.Controller.runStep(ActionSignal)
+        self.do_simulation(ctrlData, n_frames=self.frame_skip)
 
-        返回值:
-            observation (object): agent对环境的观察，在本例中，直接返回环境的所有状态数据
-            reward (float) : 奖励值，agent执行行为后环境反馈
-            done (bool): 该局游戏时候结束，在本例中，只要自己被吃，该局结束
-            info (dict): 函数返回的一些额外信息，可用于调试等
-        """
-        # ac = [] # rho, theta
-
-        # 一次执行一个half周期
-        index = self.ActionIndex
-        for _ in range(self.Action_Div[index]):
-            ActionSignal = (np.array(action) + 1.0) / 2
-
-            tCtrlData = self.theController.runStep(ActionSignal)  # No Spine
-
-            self.TimestepProcess()
-            self.theMouse.runStep(tCtrlData, legposcal=LegCal)
-            if Render:
-                self.render()
-
-        self.ActionProcess()
-
-        self.ActionIndex = (self.ActionIndex + 1) % self.MaxActIndex  # Go to next Action Piece
+        self.pos = self.data.sensor("com_pos").data.copy()
+        self.quat = self.data.sensor("com_quat").data.copy()
+        self.vel = self.data.sensor("com_vel").data.copy()
+        self.acc = self.data.sensor("imu_acc").data.copy()
+        self.gyro = self.data.sensor("imu_gyro").data.copy()
 
         self._step = self._step + 1
-        self.Action_Pre = action
-
-        s, r, done, info = self.GetMarkovNode()
-        # info = self.vel_list
-        # print(np.mean(info))
-
-        self.vel_list = []
-        self.vels = deque([])
-        self.gyros = deque([])
-
+        s, r, done, info = self.OneStepProcess()
         return s, r, done, info
-
-    def FFTProcess(self, data, Div=16, show=False, leg=None):
-        T = 0.02
-        Fs = 1 / T  # 采样频率
-        L = len(data)
-        n = L
-        # if Div is None:
-        #     Div = 25
-        ncut = int(n / Div)  # 50/25 = 2 Hz
-        f = np.linspace(0, Fs, n)
-
-        out = np.fft.fft(data)
-        power = abs(out) ** 2
-        fcut = f[0:ncut]
-        power = power[0:ncut]
-
-        rat = power[0]/sum(power)
-        return rat
-
-
-
-
-
-
-
