@@ -64,12 +64,12 @@ class MouseController(object):
         currentPos = self.pathStore.getOvalPathPoint(radian, leg_flag, self.period)
         trg_x = currentPos[0]
         trg_y = currentPos[1]
-        self.trgXList[leg_ID].append(trg_x)
-        self.trgYList[leg_ID].append(trg_y)
-
         tX = math.cos(turnAngle) * trg_x - math.sin(turnAngle) * trg_y;
         tY = math.cos(turnAngle) * trg_y + math.sin(turnAngle) * trg_x;
         qVal = leg_M.pos_2_angle(tX, tY)
+        self.trgXList[leg_ID].append(tX)
+        self.trgYList[leg_ID].append(tY)
+
         return qVal
 
     def getSpineVal(self, spineStep):

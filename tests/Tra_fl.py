@@ -163,9 +163,11 @@ if __name__ == '__main__':
     n_frames = int(dt / FL._timestep)
     run_steps_num = int(RUN_TIME_LENGTH / dt)
     theController = MouseController(fre, dt, 0)
-    theController.pathStore.para_FU = [[-0.00, -0.045], [0.03, 0.01]]
-    theController.pathStore.para_FD = [[-0.00, -0.045], [0.03, 0.005]]
-
+    theController.pathStore.para_FU = [[-0.00, -0.05], [0.02, 0.02]]
+    theController.pathStore.para_FD = [[-0.00, -0.05], [0.02, 0.005]]
+    theController.pathStore.para_HU = [[-0.005, -0.055], [0.02, 0.02]]
+    theController.pathStore.para_HD = [[-0.005, -0.055], [0.02, 0.005]]
+    theController.turn_H = 12 * np.pi / 180
     mujoco.mj_resetData(FL.model, FL.data)
 
     for i in range(10):  # 0.2 s
@@ -175,10 +177,10 @@ if __name__ == '__main__':
     FL.initializing()
     start = time.time()
     # q_pre = np.array(ctrlData)
-
+    bias = 2
     for i in range(run_steps_num):
         ctrlData = theController.runStep()  # No Spine
-        ctrlData = ctrlData[0:2]
+        ctrlData = ctrlData[0 + bias*2:2 + bias*2]
         # if i==0:
         #     dx = np.arange(q_pre[0], ctrlData[0], -0.01)
         #     np.array(ctrlData) - q_pre
@@ -193,6 +195,6 @@ if __name__ == '__main__':
 
     fig = plt.figure()
     ax = plt.axes()
-    ax.plot(theController.trgXList[0], theController.trgYList[0])
+    ax.plot(theController.trgXList[0 + bias], theController.trgYList[0 + bias])
     ax.plot(FL.legRealPoint_x[0], FL.legRealPoint_y[0])
     fig.show()

@@ -15,10 +15,10 @@ RENDER = True
 
 if __name__ == '__main__':
     # SceneFile = "../models/dynamic_4l.xml"
-    # MODELPATH = "Local_Data/S0_PPO_001"
+    # MODELPATH = "Local_Data/S0_PPO_003"
 
     SceneFile = "../models/Scenario1_Planks.xml"
-    MODELPATH = "Local_Data/S1_PPO_002"
+    MODELPATH = "Local_Data/S1_PPO_004"
 
     # SceneFile = "../models/scene_test1.xml"
     # MODELPATH = "data/S1_PPO_Native_056"
@@ -57,6 +57,7 @@ if __name__ == '__main__':
 
         action, _states = model.predict(obs, deterministic=True)
         obs, rewards, dones, info = vec_env.step(action)
+        print(action)
         # print(info)
         # print(vec_env.envs[0].pos)
         # vec_env.render()

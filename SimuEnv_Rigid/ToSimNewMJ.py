@@ -177,6 +177,11 @@ if __name__ == '__main__':
 	n_frames = int(dt / theMouse._timestep)
 	run_steps_num = int(RUN_TIME_LENGTH / dt)
 	theController = MouseController(fre, dt, 0)
+	theController.pathStore.para_FU = [[-0.00, -0.04], [0.02, 0.01]]
+	theController.pathStore.para_FD = [[-0.00, -0.04], [0.02, 0.005]]
+	theController.pathStore.para_HU = [[-0.005, -0.055], [0.02, 0.02]]
+	theController.pathStore.para_HD = [[-0.005, -0.055], [0.02, 0.005]]
+	theController.turn_H = 12 * np.pi / 180
 	mujoco.mj_resetData(theMouse.model, theMouse.data)
 
 	for i in range(10):  # 0.2 s

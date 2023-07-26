@@ -4,6 +4,7 @@
 # For training
 Local_Data
 Local_Rat_Tensorboard
+Local_Logs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
