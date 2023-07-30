@@ -19,7 +19,7 @@ class RatRL(gym.Env):
     Simplified from Wrapper V2
     """
 
-    def __init__(self, xml_file: str, render=False):
+    def __init__(self, xml_file: str, fre_cyc=0.67, render=False):
         super(RatRL, self).__init__()
         # Wrapper
         high = np.array([np.inf] * 28).astype(np.float32)  # 28: Rich sensor
@@ -47,7 +47,7 @@ class RatRL(gym.Env):
         self._timestep = self.model.opt.timestep  # Default = 0.002s per timestep
         self.dt = self._timestep * self.frame_skip  # dt = 0.01s
 
-        self.fre_cyc = 0.67  # 1.25 #0.80
+        self.fre_cyc = fre_cyc  # 0.67  # 1.25 #0.80
         self.SteNum = int(1 / (self.dt * self.fre_cyc))
         self.N_cluster = (int(self.SteNum / 8)+1)  # [19]*8
         self.SteNum = self.N_cluster * self.Ndiv  # Update SteNum

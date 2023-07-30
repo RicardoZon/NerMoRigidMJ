@@ -29,7 +29,8 @@ class MouseController(object):
         # self.spinePhase = self.phaseDiff[3]
         # --------------------------------------------------------------------- #
         self.phaseDiff = [0, PI, PI, 0]  # Trot
-        self.period = 2 / 2
+        self.period = 2 / 2  # (0, 2) ratio of former cyc period
+        # self.period = 1 / 2  # (0, 2)
         self.fre_cyc = fre  # 1.25#0.80
         self.SteNum = int(1 / (time_step * self.fre_cyc))
         print("----> ", self.SteNum)

@@ -5,6 +5,7 @@ from stable_baselines3 import PPO
 from stable_baselines3 import SAC
 from stable_baselines3 import A2C
 import warnings
+import numpy as np
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 RENDER_TRAIN = False
@@ -14,16 +15,16 @@ if __name__ == '__main__':
     # NAME = "S0_PPO_003"
 
     # SceneFile = "../models/Scenario1_Planks.xml"
-    # NAME = "S1_PPO_004"
+    # NAME = "S1_PPO_018"
 
     # SceneFile = "../models/Scenario2_Uphill.xml"
-    # NAME = "S2_PPO_005"
+    # NAME = "S2_PPO_015"
 
     # SceneFile = "../models/Scenario3_Logs.xml"
-    # NAME = "S3_PPO_006"
+    # NAME = "S3_PPO_020"
 
     SceneFile = "../models/Scenario4_Stairs.xml"
-    NAME = "S4_PPO_007"
+    NAME = "S4_PPO_017"
 
     # warnings.filterwarnings("ignore")  # skip
     checkpoint_callback = CheckpointCallback(
@@ -33,7 +34,12 @@ if __name__ == '__main__':
         save_replay_buffer=True,
         save_vecnormalize=False,
     )
-    env = RatRL(SceneFile, render=RENDER_TRAIN)
+    env = RatRL(SceneFile, fre_cyc = 1.5, render=RENDER_TRAIN)
+    env.Controller.pathStore.para_FU = [[0.01, -0.025], [0.015, 0.02]]
+    env.Controller.pathStore.para_FD = [[0.01, -0.025], [0.015, 0.005]]
+    env.Controller.pathStore.para_HU = [[0.005, -0.045], [0.015, 0.02]]
+    env.Controller.pathStore.para_HD = [[0.005, -0.045], [0.015, 0.005]]
+    env.Controller.turn_H = 0 * np.pi / 180
     model = PPO("MlpPolicy", env, verbose=1, tensorboard_log="./Local_Rat_Tensorboard/")
     # model = SAC("MlpPolicy", env, verbose=1, tensorboard_log="./Rat_Tensorboard/")
     # model = A2C("MlpPolicy", env, verbose=1, tensorboard_log="./Rat_Tensorboard/")

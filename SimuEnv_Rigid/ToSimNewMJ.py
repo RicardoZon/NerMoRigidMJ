@@ -169,19 +169,31 @@ class SimModel(object):
 
 if __name__ == '__main__':
 	import os
-	RUN_TIME_LENGTH = 20  # seconds
-	fre = 0.67
+	RUN_TIME_LENGTH = 30  # seconds
+	fre = 1.5  # 0.67  # max =  to test.   min = 0.3
 	from Controller import MouseController
 	theMouse = SimModel("../models/dynamic_4l.xml", render=True)
+	# theMouse = SimModel("../models/Scenario1_Planks.xml", render=True)
+	# theMouse = SimModel("../models/Scenario3_Logs.xml", render=True)
+	# theMouse = SimModel("../models/Scenario4_Stairs.xml", render=True)
 	dt = 0.01
 	n_frames = int(dt / theMouse._timestep)
 	run_steps_num = int(RUN_TIME_LENGTH / dt)
 	theController = MouseController(fre, dt, 0)
-	theController.pathStore.para_FU = [[-0.00, -0.04], [0.02, 0.01]]
-	theController.pathStore.para_FD = [[-0.00, -0.04], [0.02, 0.005]]
-	theController.pathStore.para_HU = [[-0.005, -0.055], [0.02, 0.02]]
-	theController.pathStore.para_HD = [[-0.005, -0.055], [0.02, 0.005]]
-	theController.turn_H = 12 * np.pi / 180
+	# For tests
+	theController.pathStore.para_FU = [[0.01, -0.025], [0.015, 0.02]]
+	theController.pathStore.para_FD = [[0.01, -0.025], [0.015, 0.005]]
+	theController.pathStore.para_HU = [[0.005, -0.045], [0.015, 0.02]]
+	theController.pathStore.para_HD = [[0.005, -0.045], [0.015, 0.005]]
+	theController.turn_H = 0 * np.pi / 180
+
+	# HYH
+	# theController.pathStore.para_FU = [[0.00, -0.05], [0.015, 0.02]]
+	# theController.pathStore.para_FD = [[0.00, -0.05], [0.015, 0.005]]
+	# theController.pathStore.para_HU = [[0.00, -0.055], [0.015, 0.02]]
+	# theController.pathStore.para_HD = [[0.00, -0.055], [0.015, 0.005]]  # -0.0525
+	# theController.turn_H = 0 * np.pi / 180
+
 	mujoco.mj_resetData(theMouse.model, theMouse.data)
 
 	for i in range(10):  # 0.2 s

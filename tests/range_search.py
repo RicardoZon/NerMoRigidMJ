@@ -36,6 +36,7 @@ if __name__ == '__main__':
     ax.set_xlabel("y")
     ax.set_ylabel("z")
     ax.scatter(Poses[:,0], Poses[:,1])
+    ax.set_aspect("equal")
     fig.show()
 
     # pos = np.array(pos)
@@ -53,11 +54,11 @@ if __name__ == '__main__':
     dt = 0.01
     n_frames = int(dt / 0.002)
     theController = MouseController(fre, dt, 0)
-    theController.pathStore.para_FU = [[-0.00, -0.04], [0.02, 0.01]]
-    theController.pathStore.para_FD = [[-0.00, -0.04], [0.02, 0.005]]
-    theController.pathStore.para_HU = [[-0.005, -0.055], [0.02, 0.02]]
-    theController.pathStore.para_HD = [[-0.005, -0.055], [0.02, 0.005]]
-    theController.turn_H = 12 * np.pi / 180
+    theController.pathStore.para_FU = [[-0.005, -0.05], [0.015, 0.02]]
+    theController.pathStore.para_FD = [[-0.005, -0.05], [0.015, 0.005]]
+    theController.pathStore.para_HU = [[0.0125, -0.055], [0.015, 0.02]]
+    theController.pathStore.para_HD = [[0.0125, -0.055], [0.015, 0.005]]
+    theController.turn_H = 0 * np.pi / 180
     for _ in range(theController.SteNum):
         ctrlData = theController.runStep()  # No Spine
     ax.plot(theController.trgXList[0], theController.trgYList[0], 'r')

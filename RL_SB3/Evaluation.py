@@ -17,30 +17,26 @@ if __name__ == '__main__':
     # SceneFile = "../models/dynamic_4l.xml"
     # MODELPATH = "Local_Data/S0_PPO_003"
 
-    SceneFile = "../models/Scenario1_Planks.xml"
-    MODELPATH = "Local_Data/S1_PPO_004"
+    # SceneFile = "../models/Scenario1_Planks.xml"
+    # MODELPATH = "Local_Data/S1_PPO_017"
 
-    # SceneFile = "../models/scene_test1.xml"
-    # MODELPATH = "data/S1_PPO_Native_056"
-    # MODELPATH = "data/S1_PPO_NativeStime_083"
-    # MODELPATH = "data/S1_SAC_NativeStime_084"
-    # MODELPATH = "data/S1_A2C_NativeStime_085"
+    # SceneFile = "../models/Scenario2_Uphill.xml"
+    # MODELPATH = "Local_Data/S2_PPO_005"
 
-    # SceneFile = "../models/scene_test2.xml"  # S2
-    # MODELPATH = "data/S2_PPO_Native_063"
-    # # Failled up
+    # SceneFile = "../models/Scenario3_Logs.xml"
+    # MODELPATH = "Local_Data/S3_PPO_006"
 
-    # SceneFile = "../models/scene_test2pro.xml"  # S2
-
-    # SceneFile = "../models/scene_test3.xml"  # 3
-    # MODELPATH = "data/S3_PPO_Native_058"
-
-    # SceneFile = "../models/scene_S4_stair.xml"
-    # MODELPATH = "data/S4_PPO_Native_072"
+    SceneFile = "../models/Scenario4_Stairs.xml"
+    MODELPATH = "Local_Data/S4_PPO_010"
 
     Recorder = DATA_Recorder()
+    env = RatRL(SceneFile, fre_cyc = 1.5, render=RENDER)
+    env.Controller.pathStore.para_FU = [[0.01, -0.025], [0.015, 0.02]]
+    env.Controller.pathStore.para_FD = [[0.01, -0.025], [0.015, 0.005]]
+    env.Controller.pathStore.para_HU = [[0.005, -0.045], [0.015, 0.02]]
+    env.Controller.pathStore.para_HD = [[0.005, -0.045], [0.015, 0.005]]
+    env.Controller.turn_H = 0 * np.pi / 180
 
-    env = RatRL(SceneFile, render=RENDER)
     model = PPO.load(MODELPATH, env=env)
 
     # env = gym.make("Ant-v2")
@@ -52,7 +48,7 @@ if __name__ == '__main__':
     obs = vec_env.reset()
     pos_Ori = vec_env.envs[0].pos[1]
     pos_end = []
-    for i in range(int(10000/5)):
+    for i in range(int(10000)):
         pos_pre = vec_env.envs[0].pos[1]
 
         action, _states = model.predict(obs, deterministic=True)
