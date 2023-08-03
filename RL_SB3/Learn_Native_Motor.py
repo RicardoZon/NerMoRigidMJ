@@ -1,5 +1,5 @@
 # from RatEnv.RL_wrapper2_MujoEnv_Compare import RatRL
-from SimuEnv_Rigid.RL_wrapper3_Connect import RatRL
+from SimuEnv_Rigid.RL_wrapper2_Dir_NewMJ import RatRL
 import gym
 from stable_baselines3 import PPO
 from stable_baselines3 import SAC
@@ -12,19 +12,29 @@ RENDER_TRAIN = False
 
 if __name__ == '__main__':
     # SceneFile = "../models/dynamic_4l.xml"
-    # NAME = "S0_PPO_024"
+    # NAME = "S0_PPO_Native_021"
+    # NAME = "S0_SAC_Native_022"
+    # NAME = "S0_A2C_Native_023"
 
     # SceneFile = "../models/Scenario1_Planks.xml"
-    # NAME = "S1_PPO_045"
+    # NAME = "S1_PPO_Native_028"
+    # NAME = "S1_SAC_Native_032"
+    # NAME = "S1_A2C_Native_024"
 
     # SceneFile = "../models/Scenario2_Uphill.xml"
-    # NAME = "S2_PPO_042"
+    # NAME = "S2_PPO_Native_029"
+    # NAME = "S2_SAC_Native_033"
+    # NAME = "S2_A2C_Native_025"
 
     # SceneFile = "../models/Scenario3_Logs.xml"
-    # NAME = "S3_PPO_043"
+    # NAME = "S3_PPO_Native_030"
+    # NAME = "S3_SAC_Native_034"
+    # NAME = "S3_A2C_Native_026"
 
-    # SceneFile = "../models/Scenario4_Stairs.xml"
-    # NAME = "S4_PPO_046"
+    SceneFile = "../models/Scenario4_Stairs.xml"
+    # NAME = "S4_PPO_Native_031"
+    NAME = "S4_SAC_Native_035"
+    # NAME = "S4_A2C_Native_027"
 
     # warnings.filterwarnings("ignore")  # skip
     checkpoint_callback = CheckpointCallback(
@@ -34,15 +44,10 @@ if __name__ == '__main__':
         save_replay_buffer=True,
         save_vecnormalize=False,
     )
-    env = RatRL(SceneFile, fre_cyc = 1.5, render=RENDER_TRAIN)
-    env.Controller.pathStore.para_FU = [[0.01, -0.035], [0.02, 0.015]]
-    env.Controller.pathStore.para_FD = [[0.01, -0.035], [0.02, 0.005]]
-    env.Controller.pathStore.para_HU = [[0.002, -0.055], [0.02, 0.015]]
-    env.Controller.pathStore.para_HD = [[0.002, -0.055], [0.02, 0.005]]
-    env.Controller.turn_H = 0 * np.pi / 180
-    model = PPO("MlpPolicy", env, verbose=1, tensorboard_log="./Local_Rat_Tensorboard/")
-    # model = SAC("MlpPolicy", env, verbose=1, tensorboard_log="./Rat_Tensorboard/")
-    # model = A2C("MlpPolicy", env, verbose=1, tensorboard_log="./Rat_Tensorboard/")
+    env = RatRL(SceneFile, render=RENDER_TRAIN)
+    # model = PPO("MlpPolicy", env, verbose=1, tensorboard_log="./Local_Rat_Tensorboard/")
+    model = SAC("MlpPolicy", env, verbose=1, tensorboard_log="./Local_Rat_Tensorboard/")
+    # model = A2C("MlpPolicy", env, verbose=1, tensorboard_log="./Local_Rat_Tensorboard/")
     model.learn(total_timesteps=2_000_000, tb_log_name=NAME, reset_num_timesteps=True,
                 callback=checkpoint_callback)
     model.save("./Local_Data/" + NAME)

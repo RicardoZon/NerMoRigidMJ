@@ -15,10 +15,10 @@ RENDER = True
 
 if __name__ == '__main__':
     # SceneFile = "../models/dynamic_4l.xml"
-    # MODELPATH = "Local_Data/S0_PPO_003"
+    # MODELPATH = "Local_Data/S0_PPO_024"
 
-    # SceneFile = "../models/Scenario1_Planks.xml"
-    # MODELPATH = "Local_Data/S1_PPO_017"
+    SceneFile = "../models/Scenario1_Planks.xml"
+    MODELPATH = "Local_Data/S1_PPO_041"
 
     # SceneFile = "../models/Scenario2_Uphill.xml"
     # MODELPATH = "Local_Data/S2_PPO_005"
@@ -26,17 +26,21 @@ if __name__ == '__main__':
     # SceneFile = "../models/Scenario3_Logs.xml"
     # MODELPATH = "Local_Data/S3_PPO_006"
 
-    SceneFile = "../models/Scenario4_Stairs.xml"
-    MODELPATH = "Local_Data/S4_PPO_010"
+    # SceneFile = "../models/Scenario4_Stairs.xml"
+    # MODELPATH = "Local_Data/S4_PPO_042"
 
     Recorder = DATA_Recorder()
-    env = RatRL(SceneFile, fre_cyc = 1.5, render=RENDER)
-    env.Controller.pathStore.para_FU = [[0.01, -0.025], [0.015, 0.02]]
-    env.Controller.pathStore.para_FD = [[0.01, -0.025], [0.015, 0.005]]
-    env.Controller.pathStore.para_HU = [[0.005, -0.045], [0.015, 0.02]]
-    env.Controller.pathStore.para_HD = [[0.005, -0.045], [0.015, 0.005]]
-    env.Controller.turn_H = 0 * np.pi / 180
-
+    env = RatRL(SceneFile, fre_cyc = 1.5, render=RENDER, recorder=True)
+    # Num010
+    # env.Controller.pathStore.para_FU = [[0.01, -0.025], [0.015, 0.02]]
+    # env.Controller.pathStore.para_FD = [[0.01, -0.025], [0.015, 0.005]]
+    # env.Controller.pathStore.para_HU = [[0.005, -0.045], [0.015, 0.02]]
+    # env.Controller.pathStore.para_HD = [[0.005, -0.045], [0.015, 0.005]]
+    env.Controller.pathStore.para_FU = [[0.01, -0.035], [0.015, 0.015]]
+    env.Controller.pathStore.para_FD = [[0.01, -0.035], [0.015, 0.005]]
+    env.Controller.pathStore.para_HU = [[-0.005, -0.055], [0.015, 0.015]]
+    env.Controller.pathStore.para_HD = [[-0.005, -0.055], [0.015, 0.005]]
+    # env.Controller.turn_H = 0 * np.pi / 180
     model = PPO.load(MODELPATH, env=env)
 
     # env = gym.make("Ant-v2")
@@ -51,21 +55,25 @@ if __name__ == '__main__':
     for i in range(int(10000)):
         pos_pre = vec_env.envs[0].pos[1]
 
-        action, _states = model.predict(obs, deterministic=True)
+        # action, _states = model.predict(obs, deterministic=True)
+        action = [[1., 1., 1., 1.]]
         obs, rewards, dones, info = vec_env.step(action)
         print(action)
         # print(info)
         # print(vec_env.envs[0].pos)
         # vec_env.render()
-        Recorder.update(vec_env.envs[0])
+        # Recorder.update(vec_env.envs[0])
 
         if dones[0]:
             pos_end.append(pos_pre)
             print(pos_pre)
+            break
 
     times = np.array(vec_env.envs[0].episode_lengths)* vec_env.envs[0].dt
     v_global = -(np.array(pos_end) - pos_Ori) / np.array(times)
     # print(v_global.mean())
 
-    # Recorder.savePath_Basic("S1_Pass_073")
+    # Recorder.savePath_Basic(MODELPATH.split('/')[-1])
+    vec_env.envs[0].Recorder.savePath_Basic(MODELPATH.split('/')[-1])
+
 

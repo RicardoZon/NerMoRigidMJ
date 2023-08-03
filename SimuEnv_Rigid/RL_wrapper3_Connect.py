@@ -3,7 +3,7 @@ from gym import spaces
 import mujoco
 import mujoco.viewer as viewer
 from SimuEnv_Rigid.RL_Controller import MouseController
-
+from Tools.DataRecorder import DATA_Recorder
 import numpy as np
 import matplotlib.pyplot as plt
 import time
@@ -19,7 +19,7 @@ class RatRL(gym.Env):
     Simplified from Wrapper V2
     """
 
-    def __init__(self, xml_file: str, fre_cyc=0.67, render=False):
+    def __init__(self, xml_file: str, fre_cyc=0.67, render=False, recorder=False):
         super(RatRL, self).__init__()
         # Wrapper
         high = np.array([np.inf] * 28).astype(np.float32)  # 28: Rich sensor
@@ -39,6 +39,10 @@ class RatRL(gym.Env):
             self.viewer.cam.lookat[0] += 0.25
             self.viewer.cam.lookat[1] += -0.5
             self.viewer.cam.distance = self.model.stat.extent * 0.5
+        if recorder:
+            self.Recorder = DATA_Recorder()
+        else:
+            self.Recorder = None
 
         # Hyper Parameter
         self.frame_skip = 5
@@ -114,6 +118,15 @@ class RatRL(gym.Env):
         for _ in range(self.N_cluster):
             ctrlData = self.Controller.runStep(ActionSignal)
             self.do_simulation(ctrlData, n_frames=self.frame_skip)
+            # if self.Recorder:
+            #     # manually updata recorder
+            #     # TODO: write it as a callback
+            #     self.Recorder.imu_pos.append(self.data.sensor("com_pos").data.copy())
+            #     self.Recorder.imu_quat.append(self.data.sensor("com_quat").data.copy())
+            #     self.Recorder.imu_vel.append(self.data.sensor("com_vel").data.copy())
+            #     self.Recorder.imu_acc.append(self.data.sensor("imu_acc").data.copy())
+            #     self.Recorder.imu_gyro.append(self.data.sensor("imu_gyro").data.copy())
+            #     self.Recorder.ctrldata.append(self.data.ctrl.copy())
         self._step = self._step + 1
         self.ActionIndex = (self.ActionIndex + 1) % self.Ndiv  # Go to next Action Piece
 

@@ -54,10 +54,14 @@ if __name__ == '__main__':
     dt = 0.01
     n_frames = int(dt / 0.002)
     theController = MouseController(fre, dt, 0)
-    theController.pathStore.para_FU = [[-0.005, -0.05], [0.015, 0.02]]
-    theController.pathStore.para_FD = [[-0.005, -0.05], [0.015, 0.005]]
-    theController.pathStore.para_HU = [[0.0125, -0.055], [0.015, 0.02]]
-    theController.pathStore.para_HD = [[0.0125, -0.055], [0.015, 0.005]]
+    theController.pathStore.para_FU = [[0.01, -0.035], [0.02, 0.015]]
+    theController.pathStore.para_FD = [[0.01, -0.035], [0.02, 0.005]]
+    theController.pathStore.para_HU = [[0.002, -0.055], [0.02, 0.015]]
+    theController.pathStore.para_HD = [[0.002, -0.055], [0.02, 0.005]]
+    # theController.pathStore.para_FU = [[-0.005, -0.05], [0.015, 0.02]]
+    # theController.pathStore.para_FD = [[-0.005, -0.05], [0.015, 0.005]]
+    # theController.pathStore.para_HU = [[0.0125, -0.055], [0.015, 0.02]]
+    # theController.pathStore.para_HD = [[0.0125, -0.055], [0.015, 0.005]]
     theController.turn_H = 0 * np.pi / 180
     for _ in range(theController.SteNum):
         ctrlData = theController.runStep()  # No Spine

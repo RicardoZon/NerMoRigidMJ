@@ -5,6 +5,7 @@
 Local_Data
 Local_Rat_Tensorboard
 Local_Logs
+Output
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

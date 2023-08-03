@@ -19,7 +19,7 @@ class MouseController(object):
         # self.turn_H = 8*PI/180
         # Spine A = 20
         self.turn_F = 0 * PI / 180
-        self.turn_H = 12 * PI / 180  # 12
+        self.turn_H = 0 * PI / 180  # 12
         self.pathStore = LegPath()
         # [LF, RF, LH, RH]
         # --------------------------------------------------------------------- #

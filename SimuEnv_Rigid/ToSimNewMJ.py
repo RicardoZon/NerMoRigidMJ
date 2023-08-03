@@ -181,18 +181,17 @@ if __name__ == '__main__':
 	run_steps_num = int(RUN_TIME_LENGTH / dt)
 	theController = MouseController(fre, dt, 0)
 	# For tests
-	theController.pathStore.para_FU = [[0.01, -0.025], [0.015, 0.02]]
-	theController.pathStore.para_FD = [[0.01, -0.025], [0.015, 0.005]]
-	theController.pathStore.para_HU = [[0.005, -0.045], [0.015, 0.02]]
-	theController.pathStore.para_HD = [[0.005, -0.045], [0.015, 0.005]]
+	theController.pathStore.para_FU = [[0.01, -0.035], [0.02, 0.015]]
+	theController.pathStore.para_FD = [[0.01, -0.035], [0.02, 0.005]]
+	theController.pathStore.para_HU = [[0.002, -0.055], [0.02, 0.015]]
+	theController.pathStore.para_HD = [[0.002, -0.055], [0.02, 0.005]]
 	theController.turn_H = 0 * np.pi / 180
 
-	# HYH
-	# theController.pathStore.para_FU = [[0.00, -0.05], [0.015, 0.02]]
-	# theController.pathStore.para_FD = [[0.00, -0.05], [0.015, 0.005]]
-	# theController.pathStore.para_HU = [[0.00, -0.055], [0.015, 0.02]]
-	# theController.pathStore.para_HD = [[0.00, -0.055], [0.015, 0.005]]  # -0.0525
-	# theController.turn_H = 0 * np.pi / 180
+	# SucQ
+	# theController.pathStore.para_FU = [[0.01, -0.025], [0.015, 0.02]]
+	# theController.pathStore.para_FD = [[0.01, -0.025], [0.015, 0.005]]
+	# theController.pathStore.para_HU = [[0.005, -0.045], [0.015, 0.02]]
+	# theController.pathStore.para_HD = [[0.005, -0.045], [0.015, 0.005]]
 
 	mujoco.mj_resetData(theMouse.model, theMouse.data)
 

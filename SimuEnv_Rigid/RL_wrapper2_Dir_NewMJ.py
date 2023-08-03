@@ -33,6 +33,7 @@ class RatRL(gym.Env):
         self.model = mujoco.MjModel.from_xml_path(filename=xml_file)
         self.data = mujoco.MjData(self.model)
         self.xml_file = xml_file
+        self.Render = render
         if render:
             # render must be called mannually
             self.viewer = viewer.launch_passive(self.model, self.data)
@@ -40,15 +41,12 @@ class RatRL(gym.Env):
             self.viewer.cam.lookat[0] += 0.25
             self.viewer.cam.lookat[1] += -0.5
             self.viewer.cam.distance = self.model.stat.extent * 0.5
-        self.Render = render
 
-        # self.init_state = self.sim.get_state()
-        # self.sim.set_state(self.init_state)
-
-        self._timestep = self.model.opt.timestep
-        self.frame_skip = 25  # 0.002s * 25 = 0.05s
-        self.dt = self._timestep * self.frame_skip
-        self._max_episode_steps = 10000 * 0.002 / self.dt  # 10000 for 0.002
+        # Hyper Parameter
+        self.frame_skip = 5
+        self._timestep = self.model.opt.timestep  # Default = 0.002s per timestep
+        self.dt = self._timestep * self.frame_skip  # dt = 0.01s
+        self._max_episode_steps = int(10000 * 0.002 / self.dt)  # 10000 for 0.002
 
         self.pos = None
         self.quat = None
@@ -103,11 +101,11 @@ class RatRL(gym.Env):
         # sum_contact = sum(contact_sensor)
 
         # Rewards
-        reward_forward = (self.pos[1] - self.Y_Pre) / self.dt * (-5)  # 2~4
+        reward_forward = (self.pos[1] - self.Y_Pre) / self.dt * (-10)  # 2~4
 
         reward_trapped = 0.0
-        if reward_forward > 3.5:
-            reward_trapped = -5.0  # 71 72
+        # if reward_forward > 3.5:
+        #     reward_trapped = -5.0  # 71 72
 
         # if sum_contact == 0:
         #     self.nair += 1
@@ -126,7 +124,7 @@ class RatRL(gym.Env):
         # reward_height = 0. # 25 * (#self.pos[2]-0.065)  # make jump and trap
 
         sum_delta_a = sum(abs(self.action - self.action_pre))
-        control_cost = 0.05 * sum_delta_a
+        control_cost = 0  # 0.05 * sum_delta_a
 
         # qpos
         # qposes = [
